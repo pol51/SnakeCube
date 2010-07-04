@@ -10,7 +10,7 @@ GlWidget::GlWidget(QWidget *parent)
   _fps(0),
   _rx(0), _ry(0), _rz(0),
   _moveX(0), _moveY(0), _moveZ(0),
-  _toAdd(4)
+  _toAdd(99)
 {
   _refreshTimer.setSingleShot(false);
   connect(&_refreshTimer, SIGNAL(timeout()), this, SLOT(update()));
@@ -27,44 +27,9 @@ GlWidget::GlWidget(QWidget *parent)
   _items.append(new Cube(-.9f,  .9f, .9f, this));
   _items.last()->setColor(0xff7fff7f);
 
-
-  /*_items.append(new Cube(-.9f,  .9f, -.9f, this));
-  _items.last()->setColor(0xff7f7fff);
-  _items.append(new Cube(-.9f,  .9f,  .9f, this));
-  _items.last()->setColor(0xff7f7fff);
-  _items.append(new Cube(-.9f, -.9f, -.9f, this));
-  _items.last()->setColor(0xff7fff7f);
-  _items.append(new Cube(-.9f, -.9f,  .9f, this));
-  _items.last()->setColor(0xff7fff7f);
-  _items.append(new Cube( .9f, -.9f, -.9f, this));
-  _items.last()->setColor(0xffff7f7f);
-  _items.append(new Cube( .9f, -.9f,  .9f, this));
-  _items.last()->setColor(0xffff7f7f);
-  _items.append(new Cube( .9f,  .9f, -.9f, this));
-  _items.last()->setColor(0xffffff7f);
-  _items.append(new Cube( .9f,  .9f,  .9f, this));
-  _items.last()->setColor(0xffffff7f);*/
-
-  for (int i = 20; --i > 0; )
-    for (int j = 20; --j > 0; )
-      for (int k = 20; --k > 0; )
-      {
-        //if ((i > 17 || i < 3)  ||
-        //(j > 17 || j < 3)  ||
-        //(k > 17 || k < 3))
-        {
-          _plateau.append(new Cube(
-            float(i) /10 - 1.f,
-            float(j) /10 - 1.f,
-            float(k) /10 - 1.f,
-            this));
-          _plateau.last()->setColor(QColor(255, 255, 255, 20));
-          _plateau.last()->setSize(0.05f);
-        }
-      }
-  /*_plateau.append(new Cube(0.f, 0.f, 0.f, this));
-  _plateau.last()->setColor(QColor(255, 255, 255, 192));
-  _plateau.last()->setSize(1.8f);*/
+  _plateau.append(new Cube(0.f, 0.f, 0.f, this));
+  _plateau.last()->setColor(QColor(0xaf, 0xaf, 0xff, 0xaf));
+  _plateau.last()->setSize(1.8f);
 
 
   setAttribute(Qt::WA_NoSystemBackground);
@@ -102,6 +67,9 @@ void GlWidget::paintGL()
   resizeGL(width(), height());
 
   glEnable(GL_CULL_FACE);
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   qglClearColor(Qt::black);
   glShadeModel(GL_SMOOTH);
@@ -116,6 +84,8 @@ void GlWidget::paintGL()
 
   glPopMatrix();
 
+  glDisable(GL_BLEND);
+  glDisable(GL_DEPTH_TEST);
   glDisable(GL_CULL_FACE);
   glDisable(GL_LIGHT0);
   glDisable(GL_LIGHTING);
@@ -138,19 +108,13 @@ void GlWidget::draw()
   glRotated(_ry / 16.0, 0.0, 1.0, 0.0);
   glRotated(_rz / 16.0, 0.0, 0.0, 1.0);
 
-  glEnable(GL_DEPTH_TEST);
   QVectorIterator<Cube*> item(_items);
   while (item.hasNext())
     item.next()->Draw();
 
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   QVectorIterator<Cube*> cube(_plateau);
   while (cube.hasNext())
     cube.next()->Draw();
-  glDisable(GL_BLEND);
-
-  glDisable(GL_DEPTH_TEST);
 
   glPopMatrix();
 }
@@ -190,6 +154,10 @@ move:
   X = headCube->x();
   Y = headCube->y();
   Z = headCube->z();
+
+  /*if (X > 0.89f) _ry = -(90<<4);
+  if (Z > 0.89f) _ry = -(180<<4);
+  if (Y > 0.89f) _rx = -(90<<4);*/
 
   if (_moveX)
   {
@@ -282,7 +250,7 @@ void GlWidget::keyPressEvent(QKeyEvent *event)
 
 int GlWidget::normalizeAngle(int angle)
 {
-  while (angle < 0) angle += 360 * 16;
-  while (angle > 360 * 16) angle -= 360 * 16;
+  while (angle < 0) angle += (360<<4);
+  while (angle > (360<<4)) angle -= (360<<4);
   return angle;
 }
