@@ -11,6 +11,12 @@ class GlWidget : public QGLWidget
   Q_OBJECT
 
   protected:
+  enum Axe
+  {
+    eXn, eXp, eYn, eYp, eZn, eZp,
+  };
+
+  protected:
     QTimer _refreshTimer;
     QTimer _fpsTimer;
     QTimer _gameTimer;
@@ -21,10 +27,14 @@ class GlWidget : public QGLWidget
     int _rx;
     int _ry;
     int _rz;
+    int _moveA;
+    int _moveB;
     int _moveX;
     int _moveY;
     int _moveZ;
     int _toAdd;
+    Axe _axeA;
+    Axe _axeB;
 
   public:
     GlWidget(QWidget *parent = NULL);
@@ -42,6 +52,8 @@ class GlWidget : public QGLWidget
     virtual void mouseMoveEvent(QMouseEvent *event);
     virtual void mousePressEvent(QMouseEvent *event);
     virtual void keyPressEvent(QKeyEvent *event);
+    void convertMove();
+    void rotateCube(Axe endAxe);
     virtual void draw();
 
   protected slots:

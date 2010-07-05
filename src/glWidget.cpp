@@ -9,8 +9,10 @@ GlWidget::GlWidget(QWidget *parent)
   :QGLWidget(QGLFormat(QGL::SampleBuffers), parent),
   _fps(0),
   _rx(0), _ry(0), _rz(0),
+  _moveA(0), _moveB(0),
   _moveX(0), _moveY(0), _moveZ(0),
-  _toAdd(99)
+  _toAdd(99),
+  _axeA(eXp), _axeB(eYn)
 {
   _refreshTimer.setSingleShot(false);
   connect(&_refreshTimer, SIGNAL(timeout()), this, SLOT(update()));
@@ -162,22 +164,22 @@ move:
   if (_moveX)
   {
     X = headCube->x() + _moveX * 0.1f;
-    if (X >  0.91f) { _moveX = 0; _moveZ = (Z>0)?-1:1; goto move; }
-    if (X < -0.91f) { _moveX = 0; _moveZ = (Z>0)?-1:1; goto move; }
+    if (X >  0.91f) { rotateCube(eXp); convertMove(); goto move; }
+    if (X < -0.91f) { rotateCube(eXn); convertMove(); goto move; }
   }
 
   if (_moveY)
   {
     Y = headCube->y() + _moveY * 0.1f;
-    if (Y >  0.91f) { _moveY = 0; _moveZ = (Z>0)?-1:1; goto move; }
-    if (Y < -0.91f) { _moveY = 0; _moveZ = (Z>0)?-1:1; goto move; }
+    if (Y >  0.91f) { rotateCube(eYp); convertMove(); goto move; }
+    if (Y < -0.91f) { rotateCube(eYn); convertMove(); goto move; }
   }
 
   if (_moveZ)
   {
     Z = headCube->z() + _moveZ * 0.1f;
-    if (Z >  0.91f) { _moveZ = 0; _moveX = (X>0)?-1:1; goto move; }
-    if (Z < -0.91f) { _moveZ = 0; _moveX = (X>0)?-1:1; goto move; }
+    if (Z >  0.91f) { rotateCube(eZp); convertMove(); goto move; }
+    if (Z < -0.91f) { rotateCube(eZn); convertMove(); goto move; }
   }
 
   headCube->setX(X);
@@ -185,6 +187,118 @@ move:
   headCube->setZ(Z);
 
   if (NewCube) _items.append(NewCube);
+}
+
+void GlWidget::rotateCube(Axe endAxe)
+{
+  switch (endAxe)
+  {
+    case eXn:
+      qDebug() << "Axe X-";
+      if (_axeA == eXn || _axeA == eXp)
+      {
+        if (_axeB == eYn || _axeB == eYp)
+          _axeA = ((_items.first()->z()>0)==(_moveA>0))?eZn:eZp;
+        else
+          _axeA = ((_items.first()->y()>0)==(_moveA>0))?eYn:eYp;
+      }
+      else
+      {
+        if (_axeA == eYn || _axeA == eYp)
+          _axeB = ((_items.first()->z()>0)==(_moveB>0))?eZn:eZp;
+        else
+          _axeB = ((_items.first()->y()>0)==(_moveB>0))?eYn:eYp;
+      }
+      break;
+    case eXp:
+      qDebug() << "Axe X+";
+      if (_axeA == eXn || _axeA == eXp)
+      {
+        if (_axeB == eYn || _axeB == eYp)
+          _axeA = ((_items.first()->z()>0)!=(_moveA>0))?eZp:eZn;
+        else
+          _axeA = ((_items.first()->y()>0)!=(_moveA>0))?eYp:eYn;
+      }
+      else
+      {
+        if (_axeA == eYn || _axeA == eYp)
+          _axeB = ((_items.first()->z()>0)!=(_moveB>0))?eZp:eZn;
+        else
+          _axeB = ((_items.first()->y()>0)!=(_moveB>0))?eYp:eYn;
+      }
+      break;
+
+    case eYn:
+      qDebug() << "Axe Y-";
+      if (_axeA == eYn || _axeA == eYp)
+      {
+        if (_axeB == eXn || _axeB == eXp)
+          _axeA = ((_items.first()->z()>0)==(_moveA>0))?eZn:eZp;
+        else
+          _axeA = ((_items.first()->x()>0)==(_moveA>0))?eXn:eXp;
+      }
+      else
+      {
+        if (_axeA == eXn || _axeA == eXp)
+          _axeB = ((_items.first()->z()>0)==(_moveB>0))?eZn:eZp;
+        else
+          _axeB = ((_items.first()->x()>0)==(_moveB>0))?eXn:eXp;
+      }
+      break;
+    case eYp:
+      qDebug() << "Axe Y+";
+      if (_axeA == eYn || _axeA == eYp)
+      {
+        if (_axeB == eXn || _axeB == eXp)
+          _axeA = ((_items.first()->z()>0)!=(_moveA>0))?eZp:eZn;
+        else
+          _axeA = ((_items.first()->x()>0)==(_moveA>0))?eXp:eXn;
+      }
+      else
+      {
+        if (_axeA == eXn || _axeA == eXp)
+          _axeB = ((_items.first()->z()>0)!=(_moveB>0))?eZp:eZn;
+        else
+          _axeB = ((_items.first()->x()>0)==(_moveB>0))?eXp:eXn;
+      }
+      break;
+
+    case eZn:
+      qDebug() << "Axe Z-";
+      if (_axeA == eZn || _axeA == eZp)
+      {
+        if (_axeB == eYn || _axeB == eYp)
+          _axeA = ((_items.first()->x()>0)==(_moveA>0))?eXn:eXp;
+        else
+          _axeA = ((_items.first()->y()>0)==(_moveA>0))?eYn:eYp;
+      }
+      else
+      {
+        if (_axeA == eYn || _axeA == eYp)
+          _axeB = ((_items.first()->x()>0)^(_moveB>0))?eXn:eXp;
+        else
+          _axeB = ((_items.first()->y()>0)^(_moveB>0))?eYn:eYp;
+      }
+      break;
+    case eZp:
+      qDebug() << "Axe Z+";
+      if (_axeA == eZn || _axeA == eZp)
+      {
+        if (_axeB == eYn || _axeB == eYp)
+          _axeA = ((_items.first()->x()>0)^(_moveA>0))?eXp:eXn;
+        else
+          _axeA = ((_items.first()->y()>0)^(_moveA>0))?eYp:eYn;
+      }
+      else
+      {
+        if (_axeA == eYn || _axeA == eYp)
+          _axeB = ((_items.first()->x()>0)^(_moveB>0))?eXp:eXn;
+        else
+          _axeB = ((_items.first()->y()>0)^(_moveB>0))?eYp:eYn;
+      }
+      break;
+  }
+
 }
 
 void GlWidget::resizeGL(int width, int height)
@@ -242,10 +356,37 @@ void GlWidget::mousePressEvent(QMouseEvent *event)
 
 void GlWidget::keyPressEvent(QKeyEvent *event)
 {
-  if (event->key() == Qt::Key_Left)  { _moveX = -1; _moveY =  0; _moveZ =  0; }
-  if (event->key() == Qt::Key_Right) { _moveX =  1; _moveY =  0; _moveZ =  0; }
-  if (event->key() == Qt::Key_Up)    { _moveX =  0; _moveY =  1; _moveZ =  0; }
-  if (event->key() == Qt::Key_Down)  { _moveX =  0; _moveY = -1; _moveZ =  0; }
+  if (event->key() == Qt::Key_Left)  { _moveA = -1; _moveB =  0; }
+  if (event->key() == Qt::Key_Right) { _moveA =  1; _moveB =  0; }
+  if (event->key() == Qt::Key_Up)    { _moveA =  0; _moveB =  1; }
+  if (event->key() == Qt::Key_Down)  { _moveA =  0; _moveB = -1; }
+
+  convertMove();
+}
+
+void GlWidget::convertMove()
+{
+  _moveX = _moveY = _moveZ =  0;
+
+  switch (_axeA)
+  {
+    case eXn: _moveX = -_moveA; break;
+    case eXp: _moveX =  _moveA; break;
+    case eYn: _moveY = -_moveA; break;
+    case eYp: _moveY =  _moveA; break;
+    case eZn: _moveZ = -_moveA; break;
+    case eZp: _moveZ =  _moveA; break;
+  }
+
+  switch (_axeB)
+  {
+    case eXn: _moveX = -_moveB; break;
+    case eXp: _moveX =  _moveB; break;
+    case eYn: _moveY = -_moveB; break;
+    case eYp: _moveY =  _moveB; break;
+    case eZn: _moveZ = -_moveB; break;
+    case eZp: _moveZ =  _moveB; break;
+  }
 }
 
 int GlWidget::normalizeAngle(int angle)
