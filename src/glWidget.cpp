@@ -267,7 +267,7 @@ void GlWidget::rotateCube(Axe endAxe)
         if (_axeB == eXn || _axeB == eXp)
           _axeA = ((_items.first()->z()>0)==(_moveA>0))?eZn:eZp;
         else
-          _axeA = ((_items.first()->x()>0)!=(_moveA>0))?eXn:eXp;
+          _axeA = ((_items.first()->x()>0)==(_moveA>0))?eXn:eXp;
       }
       else
       {
