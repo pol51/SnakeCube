@@ -26,7 +26,7 @@ GlWidget::GlWidget(QWidget *parent)
   connect(&_gameTimer, SIGNAL(timeout()), this, SLOT(processGame()));
   _gameTimer.start(200);
 
-  _items.append(new Cube(-.9f,  .9f, .9f, this));
+  _items.append(new Cube(0.f, 0.f, 0.9f, this));
   _items.last()->setColor(0xff7fff7f);
 
   _plateau.append(new Cube(0.f, 0.f, 0.f, this));
@@ -205,30 +205,14 @@ const QString GlWidget::AxeName(Axe axe)
 
 void GlWidget::rotateCube(Axe endAxe)
 {
-  qDebug() << QString("AxeA %1 :: AxeB %2").arg(AxeName(_axeA)).arg(AxeName(_axeB)).toAscii().data();
+  qDebug() << QString("AxeA %1 :: AxeB %2 [Axe %3]").arg(AxeName(_axeA)).arg(AxeName(_axeB)).arg(AxeName(endAxe)).toAscii().data();
   switch (endAxe)
   {
     case eXn:
-      qDebug() << "Axe X-";
-      if (_axeA == eXn || _axeA == eXp)
-      {
-        if (_axeB == eYn || _axeB == eYp)
-          _axeA = ((_items.first()->z()>0)==(_moveA>0))?eZn:eZp;
-        else
-          _axeA = ((_items.first()->y()>0)==(_moveA>0))?eYn:eYp;
-      }
-      else
-      {
-        if (_axeA == eYn || _axeA == eYp)
-          _axeB = ((_items.first()->z()>0)==(_moveB>0))?eZn:eZp;
-        else
-          _axeB = ((_items.first()->y()>0)==(_moveB>0))?eYn:eYp;
-      }
-      break;
     case eXp:
       if (_axeA == eXn || _axeA == eXp)
       {
-        qDebug() << "Axe X+";
+        _ry = normalizeAngle(_ry - (90<<4) * _moveA);
         if (_axeB == eYn || _axeB == eYp)
           _axeA = ((_items.first()->z()>0)==(_moveA>0))?eZn:eZp;
         else
@@ -244,24 +228,7 @@ void GlWidget::rotateCube(Axe endAxe)
       break;
 
     case eYn:
-      qDebug() << "Axe Y-";
-      if (_axeA == eYn || _axeA == eYp)
-      {
-        if (_axeB == eXn || _axeB == eXp)
-          _axeA = ((_items.first()->z()>0)==(_moveA>0))?eZn:eZp;
-        else
-          _axeA = ((_items.first()->x()>0)==(_moveA>0))?eXn:eXp;
-      }
-      else
-      {
-        if (_axeA == eXn || _axeA == eXp)
-          _axeB = ((_items.first()->z()>0)==(_moveB>0))?eZn:eZp;
-        else
-          _axeB = ((_items.first()->x()>0)==(_moveB>0))?eXn:eXp;
-      }
-      break;
     case eYp:
-      qDebug() << "Axe Y+";
       if (_axeA == eYn || _axeA == eYp)
       {
         if (_axeB == eXn || _axeB == eXp)
@@ -272,33 +239,22 @@ void GlWidget::rotateCube(Axe endAxe)
       else
       {
         if (_axeA == eXn || _axeA == eXp)
+        {
+          _rx = normalizeAngle(_rx - (90<<4) * _moveB);
           _axeB = ((_items.first()->z()>0)==(_moveB>0))?eZn:eZp;
+        }
         else
-          _axeB = ((_items.first()->x()>0)==(_moveB>0))?eXn:eXp;
+        {
+           _axeB = ((_items.first()->x()>0)==(_moveB>0))?eXn:eXp;
+        }
       }
       break;
 
     case eZn:
-      qDebug() << "Axe Z-";
-      if (_axeA == eZn || _axeA == eZp)
-      {
-        if (_axeB == eYn || _axeB == eYp)
-          _axeA = ((_items.first()->x()>0)==(_moveA>0))?eXn:eXp;
-        else
-          _axeA = ((_items.first()->y()>0)==(_moveA>0))?eYn:eYp;
-      }
-      else
-      {
-        if (_axeA == eYn || _axeA == eYp)
-          _axeB = ((_items.first()->x()>0)!=(_moveB>0))?eXn:eXp;
-        else
-          _axeB = ((_items.first()->y()>0)==(_moveB>0))?eYn:eYp;
-      }
-      break;
     case eZp:
-      qDebug() << "Axe Z+";
       if (_axeA == eZn || _axeA == eZp)
       {
+        _ry = normalizeAngle(_ry - (90<<4) * _moveA);
         if (_axeB == eYn || _axeB == eYp)
           _axeA = ((_items.first()->x()>0)==(_moveA>0))?eXn:eXp;
         else
@@ -309,7 +265,10 @@ void GlWidget::rotateCube(Axe endAxe)
         if (_axeA == eYn || _axeA == eYp)
           _axeB = ((_items.first()->x()>0)==(_moveB>0))?eXn:eXp;
         else
+        {
+          _rx = normalizeAngle(_rx - (90<<4) * _moveB);
           _axeB = ((_items.first()->y()>0)==(_moveB>0))?eYn:eYp;
+        }
       }
       break;
   }
@@ -353,13 +312,13 @@ void GlWidget::mouseMoveEvent(QMouseEvent *event)
 
   if (event->buttons() & Qt::LeftButton)
   {
-    _rx = normalizeAngle(_rx + 8*dy);
-    _ry = normalizeAngle(_ry + 8*dx);
+    _rx = normalizeAngle(_rx + (dy<<3));
+    _ry = normalizeAngle(_ry + (dx<<3));
   }
   else if (event->buttons() & Qt::RightButton)
   {
-    _rx = normalizeAngle(_rx + 8*dy);
-    _rz = normalizeAngle(_rz + 8*dx);
+    _rx = normalizeAngle(_rx + (dy<<3));
+    _rz = normalizeAngle(_rz + (dx<<3));
   }
   _lastPos = event->pos();
 }
