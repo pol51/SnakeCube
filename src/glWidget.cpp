@@ -189,8 +189,23 @@ move:
   if (NewCube) _items.append(NewCube);
 }
 
+const QString GlWidget::AxeName(Axe axe)
+{
+  switch (axe)
+  {
+    case eXn: return "X-";
+    case eXp: return "X+";
+    case eYn: return "Y-";
+    case eYp: return "Y+";
+    case eZn: return "Z-";
+    case eZp: return "Z+";
+  }
+  return "?";
+}
+
 void GlWidget::rotateCube(Axe endAxe)
 {
+  qDebug() << QString("AxeA %1 :: AxeB %2").arg(AxeName(_axeA)).arg(AxeName(_axeB)).toAscii().data();
   switch (endAxe)
   {
     case eXn:
@@ -211,20 +226,20 @@ void GlWidget::rotateCube(Axe endAxe)
       }
       break;
     case eXp:
-      qDebug() << "Axe X+";
       if (_axeA == eXn || _axeA == eXp)
       {
+        qDebug() << "Axe X+";
         if (_axeB == eYn || _axeB == eYp)
-          _axeA = ((_items.first()->z()>0)!=(_moveA>0))?eZp:eZn;
+          _axeA = ((_items.first()->z()>0)==(_moveA>0))?eZn:eZp;
         else
-          _axeA = ((_items.first()->y()>0)!=(_moveA>0))?eYp:eYn;
+          _axeA = ((_items.first()->y()>0)==(_moveA>0))?eYn:eYp;
       }
       else
       {
         if (_axeA == eYn || _axeA == eYp)
-          _axeB = ((_items.first()->z()>0)!=(_moveB>0))?eZp:eZn;
+          _axeB = ((_items.first()->z()>0)==(_moveB>0))?eZn:eZp;
         else
-          _axeB = ((_items.first()->y()>0)!=(_moveB>0))?eYp:eYn;
+          _axeB = ((_items.first()->y()>0)==(_moveB>0))?eYn:eYp;
       }
       break;
 
@@ -250,16 +265,16 @@ void GlWidget::rotateCube(Axe endAxe)
       if (_axeA == eYn || _axeA == eYp)
       {
         if (_axeB == eXn || _axeB == eXp)
-          _axeA = ((_items.first()->z()>0)!=(_moveA>0))?eZp:eZn;
+          _axeA = ((_items.first()->z()>0)==(_moveA>0))?eZn:eZp;
         else
-          _axeA = ((_items.first()->x()>0)==(_moveA>0))?eXp:eXn;
+          _axeA = ((_items.first()->x()>0)!=(_moveA>0))?eXn:eXp;
       }
       else
       {
         if (_axeA == eXn || _axeA == eXp)
-          _axeB = ((_items.first()->z()>0)!=(_moveB>0))?eZp:eZn;
+          _axeB = ((_items.first()->z()>0)==(_moveB>0))?eZn:eZp;
         else
-          _axeB = ((_items.first()->x()>0)==(_moveB>0))?eXp:eXn;
+          _axeB = ((_items.first()->x()>0)!=(_moveB>0))?eXn:eXp;
       }
       break;
 
@@ -275,9 +290,9 @@ void GlWidget::rotateCube(Axe endAxe)
       else
       {
         if (_axeA == eYn || _axeA == eYp)
-          _axeB = ((_items.first()->x()>0)^(_moveB>0))?eXn:eXp;
+          _axeB = ((_items.first()->x()>0)!=(_moveB>0))?eXn:eXp;
         else
-          _axeB = ((_items.first()->y()>0)^(_moveB>0))?eYn:eYp;
+          _axeB = ((_items.first()->y()>0)!=(_moveB>0))?eYn:eYp;
       }
       break;
     case eZp:
@@ -285,16 +300,16 @@ void GlWidget::rotateCube(Axe endAxe)
       if (_axeA == eZn || _axeA == eZp)
       {
         if (_axeB == eYn || _axeB == eYp)
-          _axeA = ((_items.first()->x()>0)^(_moveA>0))?eXp:eXn;
+          _axeA = ((_items.first()->x()>0)==(_moveA>0))?eXn:eXp;
         else
-          _axeA = ((_items.first()->y()>0)^(_moveA>0))?eYp:eYn;
+          _axeA = ((_items.first()->y()>0)==(_moveA>0))?eYn:eYp;
       }
       else
       {
         if (_axeA == eYn || _axeA == eYp)
-          _axeB = ((_items.first()->x()>0)^(_moveB>0))?eXp:eXn;
+          _axeB = ((_items.first()->x()>0)==(_moveB>0))?eXn:eXp;
         else
-          _axeB = ((_items.first()->y()>0)^(_moveB>0))?eYp:eYn;
+          _axeB = ((_items.first()->y()>0)==(_moveB>0))?eYn:eYp;
       }
       break;
   }
