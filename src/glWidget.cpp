@@ -6,7 +6,7 @@
 #include <cube.h>
 
 GlWidget::GlWidget(QWidget *parent)
-  :QGLWidget(QGLFormat(QGL::SampleBuffers), parent),
+  :QGLWidget(QGLFormat(QGL::SampleBuffers | QGL::DoubleBuffer), parent),
   _fps(0),
   _rx(0), _ry(0), _rz(0),
   _rxg(0), _ryg(0), _rzg(0),
@@ -26,7 +26,7 @@ GlWidget::GlWidget(QWidget *parent)
 
   _gameTimer.setSingleShot(false);
   connect(&_gameTimer, SIGNAL(timeout()), this, SLOT(processGame()));
-  _gameTimer.start(200);
+  _gameTimer.start(150);
 
   _cameraTimer.setSingleShot(false);
   connect(&_cameraTimer, SIGNAL(timeout()), this, SLOT(updateCamera()));
@@ -42,7 +42,7 @@ GlWidget::GlWidget(QWidget *parent)
 
 
   setAttribute(Qt::WA_NoSystemBackground);
-  setMinimumSize(400, 400);
+  setMinimumSize(160, 160);
   setMouseTracking(true);
   setFocus();
   grabKeyboard();
@@ -59,13 +59,16 @@ GlWidget::~GlWidget()
 
 QSize GlWidget::sizeHint() const
 {
-  return QSize(800, 800);
+  return QSize(320, 320);
 }
 
 void GlWidget::initializeGL()
 {
   qglClearColor(Qt::black);
   glShadeModel(GL_SMOOTH);
+  static GLfloat lightPosition[4] = { 0.2, 0.3, 6.0, 3.0 };
+  glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void GlWidget::paintGL()
@@ -73,19 +76,12 @@ void GlWidget::paintGL()
   _fps++;
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  resizeGL(width(), height());
 
   glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  qglClearColor(Qt::black);
-  glShadeModel(GL_SMOOTH);
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
-  static GLfloat lightPosition[4] = { 0.2, 0.3, 6.0, 3.0 };
-  glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 
   glPushMatrix();
 
@@ -93,11 +89,11 @@ void GlWidget::paintGL()
 
   glPopMatrix();
 
+  glDisable(GL_LIGHT0);
+  glDisable(GL_LIGHTING);
   glDisable(GL_BLEND);
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_CULL_FACE);
-  glDisable(GL_LIGHT0);
-  glDisable(GL_LIGHTING);
 
   glFlush();
 }
@@ -224,7 +220,7 @@ void GlWidget::rotateCube(Axe endAxe)
     case eXp:
       if (_axeA == eXn || _axeA == eXp)
       {
-        _ryg = _ryg - (90<<4) * _moveA;
+        _ryg = _ryg - (90<<4) * _moveA * ((_axeB == eYn || _axeB == eZn)?1:-1);
         if (_axeB == eYn || _axeB == eYp)
           _axeA = ((_items.first()->z()>0)==(_moveA>0))?eZn:eZp;
         else
@@ -289,8 +285,6 @@ void GlWidget::rotateCube(Axe endAxe)
 
 void GlWidget::resizeGL(int width, int height)
 {
-  //int side = qMin(width, height);
-  //glViewport((width - side)>>1, (height - side)>>1, side, side);
   glViewport(0, 0, width, height);
 
   float x = 1.5;
@@ -311,6 +305,7 @@ void GlWidget::paintEvent(QPaintEvent */*event*/)
 {
   QPainter painter;
   painter.begin(this);
+  painter.setRenderHint(QPainter::Antialiasing);
 
   paintGL();
 
@@ -386,7 +381,7 @@ void GlWidget::updateCamera()
 
 int GlWidget::normalizeAngle(int angle)
 {
-  while (angle < 0) angle += (360<<4);
-  while (angle > (360<<4)) angle -= (360<<4);
+  while (angle < 0)         angle += (360<<4);
+  while (angle > (360<<4))  angle -= (360<<4);
   return angle;
 }
