@@ -8,12 +8,12 @@
 GlWidget::GlWidget(QWidget *parent)
   :QGLWidget(QGLFormat(QGL::SampleBuffers | QGL::DoubleBuffer), parent),
   _fps(0),
-  _rx(0), _ry(0), _rz(0),
+  _rx(-10<<4), _ry(10<<4), _rz(0),
   _rxg(0), _ryg(0), _rzg(0),
   _rxgc(0), _rygc(0), _rzgc(0),
   _moveA(0), _moveB(0),
   _moveX(0), _moveY(0), _moveZ(0),
-  _toAdd(99),
+  _toAdd(399),
   _axeA(eXp), _axeB(eYn)
 {
   _refreshTimer.setSingleShot(false);
@@ -59,7 +59,7 @@ GlWidget::~GlWidget()
 
 QSize GlWidget::sizeHint() const
 {
-  return QSize(320, 320);
+  return QSize(800, 800);
 }
 
 void GlWidget::initializeGL()
@@ -131,8 +131,7 @@ void GlWidget::draw()
 
 void GlWidget::updateFPS()
 {
-  emit FPS(_fps);
-  emit titleFPS(QString("SnakeCube [FPS:%1]").arg(_fps));
+  setWindowTitle(QString("SnakeCube [FPS:%1]").arg(_fps));
   _fps = 0;
 }
 
@@ -262,7 +261,7 @@ void GlWidget::rotateCube(Axe endAxe)
     case eZp:
       if (_axeA == eZn || _axeA == eZp)
       {
-        _ryg = _ryg - (90<<4) * _moveA;
+        _ryg = _ryg - (90<<4) * _moveA * ((_axeB == eYn || _axeB == eXn)?1:-1);
         if (_axeB == eYn || _axeB == eYp)
           _axeA = ((_items.first()->x()>0)==(_moveA>0))?eXn:eXp;
         else
@@ -342,7 +341,18 @@ void GlWidget::keyPressEvent(QKeyEvent *event)
   if (event->key() == Qt::Key_Up)    { _moveA =  0; _moveB =  1; }
   if (event->key() == Qt::Key_Down)  { _moveA =  0; _moveB = -1; }
 
-  if (event->key() == Qt::Key_Escape){ emit askExit(); }
+  if (event->key() == Qt::Key_Escape){ close(); }
+
+  if (event->key() == Qt::Key_F) { setWindowState(windowState() ^ Qt::WindowFullScreen);}
+
+  if (event->key() == Qt::Key_Space)
+  {
+
+    if (_gameTimer.isActive())
+      _gameTimer.stop();
+    else
+      _gameTimer.start();
+  }
 
   convertMove();
 }

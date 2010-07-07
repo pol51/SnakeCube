@@ -68,11 +68,6 @@ class GlWidget : public QGLWidget
     void updateFPS();
     void processGame();
     void updateCamera();
-
-  signals:
-    void FPS(int);
-    void titleFPS(const QString);
-    void askExit();
 };
 
 #endif
