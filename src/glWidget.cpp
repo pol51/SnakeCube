@@ -9,6 +9,7 @@ GlWidget::GlWidget(QWidget *parent)
   :QGLWidget(QGLFormat(QGL::SampleBuffers), parent),
   _fps(0),
   _rx(0), _ry(0), _rz(0),
+  _rxg(0), _ryg(0), _rzg(0),
   _moveA(0), _moveB(0),
   _moveX(0), _moveY(0), _moveZ(0),
   _toAdd(99),
@@ -106,9 +107,14 @@ void GlWidget::draw()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glLoadIdentity();
   glTranslated(0.0, 0.0, -10.0);
-  glRotated(_rx / 16.0, 1.0, 0.0, 0.0);
-  glRotated(_ry / 16.0, 0.0, 1.0, 0.0);
-  glRotated(_rz / 16.0, 0.0, 0.0, 1.0);
+
+  glRotated(_rx>>4, 1.0, 0.0, 0.0);
+  glRotated(_ry>>4, 0.0, 1.0, 0.0);
+  glRotated(_rz>>4, 0.0, 0.0, 1.0);
+
+  glRotated(_rxg, 1.0, 0.0, 0.0);
+  glRotated(_ryg, 0.0, 1.0, 0.0);
+  glRotated(_rzg, 0.0, 0.0, 1.0);
 
   QVectorIterator<Cube*> item(_items);
   while (item.hasNext())
@@ -212,7 +218,7 @@ void GlWidget::rotateCube(Axe endAxe)
     case eXp:
       if (_axeA == eXn || _axeA == eXp)
       {
-        _ry = normalizeAngle(_ry - (90<<4) * _moveA);
+        _ryg = normalizeAngle(_ryg - 90 * _moveA);
         if (_axeB == eYn || _axeB == eYp)
           _axeA = ((_items.first()->z()>0)==(_moveA>0))?eZn:eZp;
         else
@@ -240,7 +246,7 @@ void GlWidget::rotateCube(Axe endAxe)
       {
         if (_axeA == eXn || _axeA == eXp)
         {
-          _rx = normalizeAngle(_rx - (90<<4) * _moveB);
+          _rxg = normalizeAngle(_rxg - 90 * _moveB);
           _axeB = ((_items.first()->z()>0)==(_moveB>0))?eZn:eZp;
         }
         else
@@ -254,7 +260,7 @@ void GlWidget::rotateCube(Axe endAxe)
     case eZp:
       if (_axeA == eZn || _axeA == eZp)
       {
-        _ry = normalizeAngle(_ry - (90<<4) * _moveA);
+        _ryg = normalizeAngle(_ryg - 90 * _moveA);
         if (_axeB == eYn || _axeB == eYp)
           _axeA = ((_items.first()->x()>0)==(_moveA>0))?eXn:eXp;
         else
@@ -266,7 +272,7 @@ void GlWidget::rotateCube(Axe endAxe)
           _axeB = ((_items.first()->x()>0)==(_moveB>0))?eXn:eXp;
         else
         {
-          _rx = normalizeAngle(_rx - (90<<4) * _moveB);
+          _rxg = normalizeAngle(_rxg - 90 * _moveB);
           _axeB = ((_items.first()->y()>0)==(_moveB>0))?eYn:eYp;
         }
       }
