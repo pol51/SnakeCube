@@ -26,7 +26,7 @@ GlWidget::GlWidget(QWidget *parent)
 
   _gameTimer.setSingleShot(false);
   connect(&_gameTimer, SIGNAL(timeout()), this, SLOT(processGame()));
-  _gameTimer.start(150);
+  _gameTimer.start(100);
 
   _cameraTimer.setSingleShot(false);
   connect(&_cameraTimer, SIGNAL(timeout()), this, SLOT(updateCamera()));
