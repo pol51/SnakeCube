@@ -224,7 +224,7 @@ void GlWidget::rotateCube(Axe endAxe)
     case eXp:
       if (_axeA == eXn || _axeA == eXp)
       {
-        _ryg = normalizeAngle(_ryg - (90<<4) * _moveA);
+        _ryg = _ryg - (90<<4) * _moveA;
         if (_axeB == eYn || _axeB == eYp)
           _axeA = ((_items.first()->z()>0)==(_moveA>0))?eZn:eZp;
         else
@@ -252,7 +252,7 @@ void GlWidget::rotateCube(Axe endAxe)
       {
         if (_axeA == eXn || _axeA == eXp)
         {
-          _rxg = normalizeAngle(_rxg - (90<<4) * _moveB);
+          _rxg = _rxg - (90<<4) * _moveB;
           _axeB = ((_items.first()->z()>0)==(_moveB>0))?eZn:eZp;
         }
         else
@@ -266,7 +266,7 @@ void GlWidget::rotateCube(Axe endAxe)
     case eZp:
       if (_axeA == eZn || _axeA == eZp)
       {
-        _ryg = normalizeAngle(_ryg - (90<<4) * _moveA);
+        _ryg = _ryg - (90<<4) * _moveA;
         if (_axeB == eYn || _axeB == eYp)
           _axeA = ((_items.first()->x()>0)==(_moveA>0))?eXn:eXp;
         else
@@ -278,7 +278,7 @@ void GlWidget::rotateCube(Axe endAxe)
           _axeB = ((_items.first()->x()>0)==(_moveB>0))?eXn:eXp;
         else
         {
-          _rxg = normalizeAngle(_rxg - (90<<4) * _moveB);
+          _rxg = _rxg - (90<<4) * _moveB;
           _axeB = ((_items.first()->y()>0)==(_moveB>0))?eYn:eYp;
         }
       }
@@ -379,9 +379,9 @@ void GlWidget::convertMove()
 
 void GlWidget::updateCamera()
 {
-  if (_rxgc != _rxg) { if (_rxgc < _rxg || _rxg == 0) _rxgc += (9<<4);  else _rxgc -= (9<<4); }
-  if (_rygc != _ryg) { if (_rygc < _ryg || _ryg == 0) _rygc += (9<<4);  else _rygc -= (9<<4); }
-  if (_rzgc != _rzg) { if (_rzgc < _rzg || _rzg == 0) _rzgc += (9<<4);  else _rzgc -= (9<<4); }
+  if (_rxgc != _rxg) { if (_rxgc < _rxg) _rxgc += (9<<4);  else _rxgc -= (9<<4); if (_rxgc == _rxg) _rxgc = _rxg = normalizeAngle(_rxg); }
+  if (_rygc != _ryg) { if (_rygc < _ryg) _rygc += (9<<4);  else _rygc -= (9<<4); if (_rygc == _ryg) _rygc = _ryg = normalizeAngle(_ryg); }
+  if (_rzgc != _rzg) { if (_rzgc < _rzg) _rzgc += (9<<4);  else _rzgc -= (9<<4); if (_rzgc == _rzg) _rzgc = _rzg = normalizeAngle(_rzg); }
 }
 
 int GlWidget::normalizeAngle(int angle)
