@@ -20,6 +20,7 @@ class GlWidget : public QGLWidget
     QTimer _refreshTimer;
     QTimer _fpsTimer;
     QTimer _gameTimer;
+    QTimer _cameraTimer;
     QVector<Cube*> _plateau;
     QVector<Cube*> _items;
     QPoint _lastPos;
@@ -30,6 +31,9 @@ class GlWidget : public QGLWidget
     int _rxg;
     int _ryg;
     int _rzg;
+    int _rxgc;
+    int _rygc;
+    int _rzgc;
     int _moveA;
     int _moveB;
     int _moveX;
@@ -63,10 +67,12 @@ class GlWidget : public QGLWidget
   protected slots:
     void updateFPS();
     void processGame();
+    void updateCamera();
 
   signals:
     void FPS(int);
     void titleFPS(const QString);
+    void askExit();
 };
 
 #endif

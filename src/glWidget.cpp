@@ -10,6 +10,7 @@ GlWidget::GlWidget(QWidget *parent)
   _fps(0),
   _rx(0), _ry(0), _rz(0),
   _rxg(0), _ryg(0), _rzg(0),
+  _rxgc(0), _rygc(0), _rzgc(0),
   _moveA(0), _moveB(0),
   _moveX(0), _moveY(0), _moveZ(0),
   _toAdd(99),
@@ -26,6 +27,11 @@ GlWidget::GlWidget(QWidget *parent)
   _gameTimer.setSingleShot(false);
   connect(&_gameTimer, SIGNAL(timeout()), this, SLOT(processGame()));
   _gameTimer.start(200);
+
+  _cameraTimer.setSingleShot(false);
+  connect(&_cameraTimer, SIGNAL(timeout()), this, SLOT(updateCamera()));
+  _cameraTimer.start(20);
+
 
   _items.append(new Cube(0.f, 0.f, 0.9f, this));
   _items.last()->setColor(0xff7fff7f);
@@ -112,9 +118,9 @@ void GlWidget::draw()
   glRotated(_ry>>4, 0.0, 1.0, 0.0);
   glRotated(_rz>>4, 0.0, 0.0, 1.0);
 
-  glRotated(_rxg, 1.0, 0.0, 0.0);
-  glRotated(_ryg, 0.0, 1.0, 0.0);
-  glRotated(_rzg, 0.0, 0.0, 1.0);
+  glRotated(_rxgc>>4, 1.0, 0.0, 0.0);
+  glRotated(_rygc>>4, 0.0, 1.0, 0.0);
+  glRotated(_rzgc>>4, 0.0, 0.0, 1.0);
 
   QVectorIterator<Cube*> item(_items);
   while (item.hasNext())
@@ -218,7 +224,7 @@ void GlWidget::rotateCube(Axe endAxe)
     case eXp:
       if (_axeA == eXn || _axeA == eXp)
       {
-        _ryg = normalizeAngle(_ryg - 90 * _moveA);
+        _ryg = normalizeAngle(_ryg - (90<<4) * _moveA);
         if (_axeB == eYn || _axeB == eYp)
           _axeA = ((_items.first()->z()>0)==(_moveA>0))?eZn:eZp;
         else
@@ -246,7 +252,7 @@ void GlWidget::rotateCube(Axe endAxe)
       {
         if (_axeA == eXn || _axeA == eXp)
         {
-          _rxg = normalizeAngle(_rxg - 90 * _moveB);
+          _rxg = normalizeAngle(_rxg - (90<<4) * _moveB);
           _axeB = ((_items.first()->z()>0)==(_moveB>0))?eZn:eZp;
         }
         else
@@ -260,7 +266,7 @@ void GlWidget::rotateCube(Axe endAxe)
     case eZp:
       if (_axeA == eZn || _axeA == eZp)
       {
-        _ryg = normalizeAngle(_ryg - 90 * _moveA);
+        _ryg = normalizeAngle(_ryg - (90<<4) * _moveA);
         if (_axeB == eYn || _axeB == eYp)
           _axeA = ((_items.first()->x()>0)==(_moveA>0))?eXn:eXp;
         else
@@ -272,7 +278,7 @@ void GlWidget::rotateCube(Axe endAxe)
           _axeB = ((_items.first()->x()>0)==(_moveB>0))?eXn:eXp;
         else
         {
-          _rxg = normalizeAngle(_rxg - 90 * _moveB);
+          _rxg = normalizeAngle(_rxg - (90<<4) * _moveB);
           _axeB = ((_items.first()->y()>0)==(_moveB>0))?eYn:eYp;
         }
       }
@@ -341,6 +347,8 @@ void GlWidget::keyPressEvent(QKeyEvent *event)
   if (event->key() == Qt::Key_Up)    { _moveA =  0; _moveB =  1; }
   if (event->key() == Qt::Key_Down)  { _moveA =  0; _moveB = -1; }
 
+  if (event->key() == Qt::Key_Escape){ emit askExit(); }
+
   convertMove();
 }
 
@@ -367,6 +375,13 @@ void GlWidget::convertMove()
     case eZn: _moveZ = -_moveB; break;
     case eZp: _moveZ =  _moveB; break;
   }
+}
+
+void GlWidget::updateCamera()
+{
+  if (_rxgc != _rxg) { if (_rxgc < _rxg || _rxg == 0) _rxgc += (9<<4);  else _rxgc -= (9<<4); }
+  if (_rygc != _ryg) { if (_rygc < _ryg || _ryg == 0) _rygc += (9<<4);  else _rygc -= (9<<4); }
+  if (_rzgc != _rzg) { if (_rzgc < _rzg || _rzg == 0) _rzgc += (9<<4);  else _rzgc -= (9<<4); }
 }
 
 int GlWidget::normalizeAngle(int angle)

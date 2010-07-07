@@ -16,6 +16,7 @@ int main(int argc, char *argv[])
   GlWidget myGlw;
 
   mainWindow.connect(&myGlw, SIGNAL(titleFPS(QString)), &mainWindow, SLOT(setWindowTitle(const QString)));
+  mainWindow.connect(&myGlw, SIGNAL(askExit()), &mainWindow, SLOT(close()));
 
   QGridLayout mainLayout;
   mainLayout.addWidget(&myGlw, 0, 0, 1, 1);
