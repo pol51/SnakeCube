@@ -36,9 +36,9 @@ GlWidget::GlWidget(QWidget *parent)
   _items.append(new Cube(0.f, 0.f, 0.9f, this));
   _items.last()->setColor(0xff7fff7f);
 
-  _plateau.append(new Cube(0.f, 0.f, 0.f, this));
-  _plateau.last()->setColor(QColor(0xaf, 0xaf, 0xff, 0xaf));
-  _plateau.last()->setSize(1.8f);
+  _plateau = new Cube(0.f, 0.f, 0.f, this);
+  _plateau->setColor(QColor(0xaf, 0xaf, 0xff, 0xaf));
+  _plateau->setSize(1.8f);
 
 
   setAttribute(Qt::WA_NoSystemBackground);
@@ -52,9 +52,12 @@ GlWidget::~GlWidget()
 {
   makeCurrent();
 
-  QVectorIterator<Cube*> cube(_plateau);
-  while (cube.hasNext())
-    delete cube.next();
+  delete (_plateau);
+
+  QVectorIterator<Cube*> item(_items);
+  while (item.hasNext())
+    delete item.next();
+
 }
 
 QSize GlWidget::sizeHint() const
@@ -64,7 +67,6 @@ QSize GlWidget::sizeHint() const
 
 void GlWidget::initializeGL()
 {
-  qglClearColor(Qt::black);
   glShadeModel(GL_SMOOTH);
   static GLfloat lightPosition[4] = { 0.2, 0.3, 6.0, 3.0 };
   glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
@@ -74,8 +76,6 @@ void GlWidget::initializeGL()
 void GlWidget::paintGL()
 {
   _fps++;
-
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
@@ -100,14 +100,12 @@ void GlWidget::paintGL()
 
 void GlWidget::draw()
 {
-  glPushMatrix();
-
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glLoadIdentity();
+
   glTranslated(0.0, 0.0, -10.0);
 
   glRotated(_rx>>4, 1.0, 0.0, 0.0);
@@ -122,11 +120,7 @@ void GlWidget::draw()
   while (item.hasNext())
     item.next()->Draw();
 
-  QVectorIterator<Cube*> cube(_plateau);
-  while (cube.hasNext())
-    cube.next()->Draw();
-
-  glPopMatrix();
+  _plateau->Draw();
 }
 
 void GlWidget::updateFPS()
@@ -163,10 +157,6 @@ move:
   X = headCube->x();
   Y = headCube->y();
   Z = headCube->z();
-
-  /*if (X > 0.89f) _ry = -(90<<4);
-  if (Z > 0.89f) _ry = -(180<<4);
-  if (Y > 0.89f) _rx = -(90<<4);*/
 
   if (_moveX)
   {

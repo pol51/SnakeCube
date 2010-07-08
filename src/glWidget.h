@@ -21,7 +21,7 @@ class GlWidget : public QGLWidget
     QTimer _fpsTimer;
     QTimer _gameTimer;
     QTimer _cameraTimer;
-    QVector<Cube*> _plateau;
+    Cube   *_plateau;
     QVector<Cube*> _items;
     QPoint _lastPos;
     int _fps;
