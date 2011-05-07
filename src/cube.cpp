@@ -38,37 +38,37 @@ void Cube::Draw() const
 
   glBegin(GL_QUADS);
 
-  glNormal3f( 0,  0, -1);
+  glNormal3f( 0.f,  0.f, -1.f);
   glVertex3f( hSize, -hSize, -hSize);
   glVertex3f( hSize,  hSize, -hSize);
   glVertex3f(-hSize,  hSize, -hSize);
   glVertex3f(-hSize, -hSize, -hSize);
 
-  glNormal3f( 0,  0,  1);
+  glNormal3f( 0.f,  0.f,  1.f);
   glVertex3f(-hSize, -hSize,  hSize);
   glVertex3f(-hSize,  hSize,  hSize);
   glVertex3f( hSize,  hSize,  hSize);
   glVertex3f( hSize, -hSize,  hSize);
 
-  glNormal3f( 0,  1, 0);
+  glNormal3f( 0.f,  1.f, 0.f);
   glVertex3f(-hSize,  hSize,  hSize);
   glVertex3f(-hSize,  hSize, -hSize);
   glVertex3f( hSize,  hSize, -hSize);
   glVertex3f( hSize,  hSize,  hSize);
 
-  glNormal3f( 0, -1, 0);
+  glNormal3f( 0.f, -1.f, 0.f);
   glVertex3f(-hSize, -hSize, -hSize);
   glVertex3f(-hSize, -hSize,  hSize);
   glVertex3f( hSize, -hSize,  hSize);
   glVertex3f( hSize, -hSize, -hSize);
 
-  glNormal3f(-1,  0,  0);
+  glNormal3f(-1.f,  0.f,  0.f);
   glVertex3f(-hSize, -hSize,  hSize);
   glVertex3f(-hSize, -hSize, -hSize);
   glVertex3f(-hSize,  hSize, -hSize);
   glVertex3f(-hSize,  hSize,  hSize);
 
-  glNormal3f( 1,  0,  0);
+  glNormal3f( 1.f,  0.f,  0.f);
   glVertex3f( hSize,  hSize,  hSize);
   glVertex3f( hSize,  hSize, -hSize);
   glVertex3f( hSize, -hSize, -hSize);

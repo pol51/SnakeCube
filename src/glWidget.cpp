@@ -5,6 +5,8 @@
 
 #include <cube.h>
 
+QString GlWidget::_axeName[6] = { "X-", "X+", "Y-", "Y+", "Z-", "Z+" };
+
 GlWidget::GlWidget(QWidget *parent)
   :QGLWidget(QGLFormat(QGL::SampleBuffers | QGL::DoubleBuffer), parent),
   _fps(0),
@@ -75,7 +77,7 @@ void GlWidget::initializeGL()
 
 void GlWidget::paintGL()
 {
-  _fps++;
+  ++_fps;
 
   glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
@@ -103,18 +105,18 @@ void GlWidget::draw()
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
-  glClearColor(0.0, 0.0, 0.0, 0.0);
+  glClearColor(0.f, 0.f, 0.f, 0.f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glTranslated(0.0, 0.0, -10.0);
+  glTranslated(0, 0, -10);
 
-  glRotated(_rx>>4, 1.0, 0.0, 0.0);
-  glRotated(_ry>>4, 0.0, 1.0, 0.0);
-  glRotated(_rz>>4, 0.0, 0.0, 1.0);
+  glRotated(_rx>>4, 1, 0, 0);
+  glRotated(_ry>>4, 0, 1, 0);
+  glRotated(_rz>>4, 0, 0, 1);
 
-  glRotated(_rxgc>>4, 1.0, 0.0, 0.0);
-  glRotated(_rygc>>4, 0.0, 1.0, 0.0);
-  glRotated(_rzgc>>4, 0.0, 0.0, 1.0);
+  glRotated(_rxgc>>4, 1, 0, 0);
+  glRotated(_rygc>>4, 0, 1, 0);
+  glRotated(_rzgc>>4, 0, 0, 1);
 
   QVectorIterator<Cube*> item(_items);
   while (item.hasNext())
@@ -186,23 +188,9 @@ move:
   if (NewCube) _items.append(NewCube);
 }
 
-const QString GlWidget::AxeName(Axe axe)
-{
-  switch (axe)
-  {
-    case eXn: return "X-";
-    case eXp: return "X+";
-    case eYn: return "Y-";
-    case eYp: return "Y+";
-    case eZn: return "Z-";
-    case eZp: return "Z+";
-  }
-  return "?";
-}
-
 void GlWidget::rotateCube(Axe endAxe)
 {
-  qDebug() << QString("AxeA %1 :: AxeB %2 [Axe %3]").arg(AxeName(_axeA)).arg(AxeName(_axeB)).arg(AxeName(endAxe)).toAscii().data();
+  qDebug() << QString("AxeA %1 :: AxeB %2 [Axe %3]").arg(_axeName[_axeA]).arg(_axeName[_axeB]).arg(_axeName[endAxe]).toAscii().data();
   switch (endAxe)
   {
     case eXn:

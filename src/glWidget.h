@@ -11,10 +11,12 @@ class GlWidget : public QGLWidget
   Q_OBJECT
 
   protected:
-  enum Axe
-  {
-    eXn, eXp, eYn, eYp, eZn, eZp,
-  };
+    enum Axe
+    {
+      eXn, eXp, eYn, eYp, eZn, eZp
+    };
+
+    static QString _axeName[6];
 
   protected:
     QTimer _refreshTimer;
@@ -60,7 +62,6 @@ class GlWidget : public QGLWidget
     virtual void mousePressEvent(QMouseEvent *event);
     virtual void keyPressEvent(QKeyEvent *event);
     void convertMove();
-    const QString AxeName(Axe axe);
     void rotateCube(Axe endAxe);
     virtual void draw();
 
