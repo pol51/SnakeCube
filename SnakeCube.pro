@@ -7,6 +7,8 @@ INCLUDEPATH +=	src
 
 QT +=			opengl
 
+debug:QMAKE_CXXFLAGS += -O0 -g
+
 HEADERS =\
   src/glWidget.h\
   src/cube.h
