@@ -208,6 +208,7 @@ void GlWidget::rotateCube(Axe endAxe)
         if (_axeA == eYn || _axeA == eYp)
           _axeB = ((_items.first()->z()>0)==(_moveB>0))?eZn:eZp;
         else
+          _rxg = _rxg - (90<<4) * _moveB;
           _axeB = ((_items.first()->y()>0)==(_moveB>0))?eYn:eYp;
       }
       break;
@@ -230,7 +231,8 @@ void GlWidget::rotateCube(Axe endAxe)
         }
         else
         {
-           _axeB = ((_items.first()->x()>0)==(_moveB>0))?eXn:eXp;
+          _rxg = _rxg - (90<<4) * _moveB;
+          _axeB = ((_items.first()->x()>0)==(_moveB>0))?eXn:eXp;
         }
       }
       break;
