@@ -38,6 +38,8 @@ class GlWidget : public QGLWidget
     int _rxgc;
     int _rygc;
     int _rzgc;
+    int _rxa;
+    int _rya;
     int _moveA;
     int _moveB;
     int _moveX;
