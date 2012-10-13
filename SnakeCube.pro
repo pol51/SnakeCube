@@ -11,11 +11,13 @@ debug:QMAKE_CXXFLAGS += -O0 -g
 
 HEADERS =\
   src/glWidget.h\
-  src/cube.h
+  src/cube.h\
+  src/qHud.h
 
 SOURCES =\
   src/glWidget.cpp\
   src/cube.cpp\
+  src/qHud.cpp\
   src/main.cpp
 
 CONFIG +=\

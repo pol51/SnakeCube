@@ -1,21 +1,22 @@
 #include "glWidget.h"
 
 #include <QtOpenGL>
-#include <QDebug>
 
 #include <cube.h>
+#include <qHud.h>
 
 QString GlWidget::_axeName[6] = { "X-", "X+", "Y-", "Y+", "Z-", "Z+" };
 
 GlWidget::GlWidget(QWidget *parent)
   :QGLWidget(QGLFormat(QGL::SampleBuffers | QGL::DoubleBuffer), parent),
   _fps(0),
-  _rx(-10<<4), _ry(10<<4), _rz(0),
+  //_rx(-10<<4), _ry(10<<4), _rz(0),
+  _rx(0), _ry(0), _rz(0),
   _rxg(0), _ryg(0), _rzg(0),
   _rxgc(0), _rygc(0), _rzgc(0),
   _moveA(0), _moveB(0),
   _moveX(0), _moveY(0), _moveZ(0),
-  _toAdd(399),
+  _toAdd(9),
   _axeA(eXp), _axeB(eYn)
 {
   _refreshTimer.setSingleShot(false);
@@ -48,13 +49,24 @@ GlWidget::GlWidget(QWidget *parent)
   setMouseTracking(true);
   setFocus();
   grabKeyboard();
+
+  _gameHud = new QHud(this);
+  QFont font;
+  font.setFamily("Lucida Console");
+  font.setPixelSize(14);
+  font.setBold(true);
+  _gameHud->setFont(font);
+  _gameHud->setForeColor(QColor::fromRgb(0, 255, 127));
+  _gameHud->setPosition(QPoint(5, 5));
+  _gameHud->setVisible(true);
 }
 
 GlWidget::~GlWidget()
 {
   makeCurrent();
 
-  delete (_plateau);
+  delete _plateau;
+  delete _gameHud;
 
   QVectorIterator<Cube*> item(_items);
   while (item.hasNext())
@@ -190,73 +202,48 @@ move:
 
 void GlWidget::rotateCube(Axe endAxe)
 {
-  qDebug() << QString("AxeA %1 :: AxeB %2 [Axe %3]").arg(_axeName[_axeA]).arg(_axeName[_axeB]).arg(_axeName[endAxe]).toAscii().data();
   switch (endAxe)
   {
     case eXn:
     case eXp:
       if (_axeA == eXn || _axeA == eXp)
-      {
-        _ryg = _ryg - (90<<4) * _moveA * ((_axeB == eYn || _axeB == eZn)?1:-1);
         if (_axeB == eYn || _axeB == eYp)
           _axeA = ((_items.first()->z()>0)==(_moveA>0))?eZn:eZp;
         else
           _axeA = ((_items.first()->y()>0)==(_moveA>0))?eYn:eYp;
-      }
       else
-      {
         if (_axeA == eYn || _axeA == eYp)
           _axeB = ((_items.first()->z()>0)==(_moveB>0))?eZn:eZp;
         else
-          _rxg = _rxg - (90<<4) * _moveB;
           _axeB = ((_items.first()->y()>0)==(_moveB>0))?eYn:eYp;
-      }
       break;
 
     case eYn:
     case eYp:
       if (_axeA == eYn || _axeA == eYp)
-      {
         if (_axeB == eXn || _axeB == eXp)
           _axeA = ((_items.first()->z()>0)==(_moveA>0))?eZn:eZp;
         else
           _axeA = ((_items.first()->x()>0)==(_moveA>0))?eXn:eXp;
-      }
       else
-      {
         if (_axeA == eXn || _axeA == eXp)
-        {
-          _rxg = _rxg - (90<<4) * _moveB;
           _axeB = ((_items.first()->z()>0)==(_moveB>0))?eZn:eZp;
-        }
         else
-        {
-          _rxg = _rxg - (90<<4) * _moveB;
           _axeB = ((_items.first()->x()>0)==(_moveB>0))?eXn:eXp;
-        }
-      }
       break;
 
     case eZn:
     case eZp:
       if (_axeA == eZn || _axeA == eZp)
-      {
-        _ryg = _ryg - (90<<4) * _moveA * ((_axeB == eYn || _axeB == eXn)?1:-1);
         if (_axeB == eYn || _axeB == eYp)
           _axeA = ((_items.first()->x()>0)==(_moveA>0))?eXn:eXp;
         else
           _axeA = ((_items.first()->y()>0)==(_moveA>0))?eYn:eYp;
-      }
       else
-      {
         if (_axeA == eYn || _axeA == eYp)
           _axeB = ((_items.first()->x()>0)==(_moveB>0))?eXn:eXp;
         else
-        {
-          _rxg = _rxg - (90<<4) * _moveB;
           _axeB = ((_items.first()->y()>0)==(_moveB>0))?eYn:eYp;
-        }
-      }
       break;
   }
 
@@ -287,6 +274,8 @@ void GlWidget::paintEvent(QPaintEvent */*event*/)
   painter.setRenderHint(QPainter::Antialiasing);
 
   paintGL();
+
+  _gameHud->draw(&painter);
 
   painter.end();
 }
@@ -367,6 +356,7 @@ void GlWidget::updateCamera()
   if (_rxgc != _rxg) { if (_rxgc < _rxg) _rxgc += (9<<4);  else _rxgc -= (9<<4); if (_rxgc == _rxg) _rxgc = _rxg = normalizeAngle(_rxg); }
   if (_rygc != _ryg) { if (_rygc < _ryg) _rygc += (9<<4);  else _rygc -= (9<<4); if (_rygc == _ryg) _rygc = _ryg = normalizeAngle(_ryg); }
   if (_rzgc != _rzg) { if (_rzgc < _rzg) _rzgc += (9<<4);  else _rzgc -= (9<<4); if (_rzgc == _rzg) _rzgc = _rzg = normalizeAngle(_rzg); }
+  _gameHud->setText(QString("A: %1\nB: %2\n\nX: %3\nY: %4\nZ: %5").arg(_axeName[_axeA]).arg(_axeName[_axeB]).arg(_rx>>4).arg(_ry>>4).arg(_rz>>4));
 }
 
 int GlWidget::normalizeAngle(int angle)

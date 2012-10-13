@@ -5,6 +5,7 @@
 #include <QTimer>
 
 class Cube;
+class QHud;
 
 class GlWidget : public QGLWidget
 {
@@ -24,6 +25,7 @@ class GlWidget : public QGLWidget
     QTimer _gameTimer;
     QTimer _cameraTimer;
     Cube   *_plateau;
+    QHud   *_gameHud;
     QVector<Cube*> _items;
     QPoint _lastPos;
     int _fps;
