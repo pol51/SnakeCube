@@ -20,14 +20,6 @@ class GlWidget : public QGLWidget
     static QString _axeName[6];
 
   protected:
-    QTimer _refreshTimer;
-    QTimer _fpsTimer;
-    QTimer _gameTimer;
-    QTimer _cameraTimer;
-    Cube   *_plateau;
-    QHud   *_gameHud;
-    QVector<Cube*> _items;
-    QPoint _lastPos;
     int _fps;
     int _rx;
     int _ry;
@@ -48,6 +40,14 @@ class GlWidget : public QGLWidget
     int _toAdd;
     Axe _axeA;
     Axe _axeB;
+    Cube   *_plateau;
+    QHud   *_gameHud;
+    QTimer _refreshTimer;
+    QTimer _fpsTimer;
+    QTimer _gameTimer;
+    QTimer _cameraTimer;
+    QVector<Cube*> _items;
+    QPoint _lastPos;
 
   public:
     GlWidget(QWidget *parent = NULL);

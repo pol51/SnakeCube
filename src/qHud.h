@@ -12,56 +12,52 @@
 class QImage;
 class QPainter;
 
-
 class QHud : public QObject
 {
+  Q_OBJECT
 
-Q_OBJECT
+  public:
+    QHud(QObject *parent = NULL);
+    ~QHud();
 
-public:
+    const QString&  text()          const { return _text; }
+          int       textAlignment() const { return _textAlignment; }
+    const QFont&    font()          const { return _font; }
+    const QColor&   fgColor()       const { return _fgColor; }
+    const QColor&   bgColor()       const { return _bgColor; }
+    const QPoint&   position()      const { return _position; }
+    const QSize&    size()          const { return _size; }
+          bool      isAutoSize()    const { return _autoSize; }
+          int       border()        const { return _border; }
+          bool      isVisible()     const { return _visible; }
 
-  QHud(QObject *parent = 0);
-  virtual ~QHud();
+    void setText(const QString &value)    { _text = value,          _updatable = true; }
+    void setTextAlignment(int value)      { _textAlignment = value, _updatable = true; }
+    void setFont(const QFont &value)      { _font = value,          _updatable = true; }
+    void setFgColor(const QColor &value)  { _fgColor = value,       _updatable = true; }
+    void setBgColor(const QColor &value)  { _bgColor = value,       _updatable = true; }
+    void setPosition(const QPoint &value) { _position = value; }
+    void setSize(const QSize &value)      { _size = value,          _updatable = true; }
+    void setAutoSize(const bool value)    { _autoSize = value,      _updatable = true; }
+    void setBorder(const int value)       { _border = value,        _updatable = true; }
+    void setVisible(const bool value)     { _visible = value; }
 
-  const QString & getText() const;
-  const int getTextAlignment() const;
-  const QFont & getFont() const;
-  const QColor & getForeColor() const;
-  const QColor & getBackColor() const;
-  const QPoint & getPosition() const;
-  const QSize & getSize() const;
-  const bool isAutoSize() const;
-  const int getBorder() const;
-  const bool isVisible() const;
+    void updateImage();
+    void draw(QPainter* painter);
 
-  void setText(QString value);
-  void setTextAlignment(int value);
-  void setFont(QFont value);
-  void setForeColor(QColor value);
-  void setBackColor(QColor value);
-  void setPosition(QPoint value);
-  void setSize(QSize value);
-  void setAutoSize(bool value);
-  void setBorder(int value);
-  void setVisible(bool value);
-
-  void updateImage();
-  void draw(QPainter* painter);
-
-private:
-
-  QString _text;
-  QImage* _image;
-  int _textAlignment;
-  QFont _font;
-  QColor _foreColor;
-  QColor _backColor;
-  QPoint _position;
-  QSize _size;
-  bool _autoSize;
-  int _border;
-  bool _visible;
-  bool _updatable;
+  protected:
+    bool _autoSize;
+    bool _visible;
+    bool _updatable;
+    int _textAlignment;
+    int _border;
+    QImage* _image;
+    QString _text;
+    QFont _font;
+    QColor _fgColor;
+    QColor _bgColor;
+    QPoint _position;
+    QSize _size;
 };
 
 #endif

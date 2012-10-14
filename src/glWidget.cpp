@@ -16,12 +16,13 @@ GlWidget::GlWidget(QWidget *parent)
   _rxa(0), _rya(0),
   _moveA(0), _moveB(0),
   _moveX(0), _moveY(0), _moveZ(0),
-  _toAdd(9),
-  _axeA(eXp), _axeB(eYn)
+  _toAdd(71),
+  _axeA(eXp), _axeB(eYn),
+  _gameHud(new QHud(this))
 {
   _refreshTimer.setSingleShot(false);
   connect(&_refreshTimer, SIGNAL(timeout()), this, SLOT(update()));
-  _refreshTimer.start(20);
+  _refreshTimer.start(1000/60);
 
   _fpsTimer.setSingleShot(false);
   connect(&_fpsTimer, SIGNAL(timeout()), this, SLOT(updateFPS()));
@@ -50,15 +51,11 @@ GlWidget::GlWidget(QWidget *parent)
   setFocus();
   grabKeyboard();
 
-  _gameHud = new QHud(this);
-  QFont font;
-  font.setFamily("DejaVu Sans Mono");
-  font.setPixelSize(12);
-  font.setBold(true);
-  _gameHud->setFont(font);
-  _gameHud->setForeColor(QColor::fromRgb(0, 255, 127));
+  _gameHud->setFont(QFont("DejaVu Sans Mono", 12, QFont::Bold));
+  _gameHud->setFgColor(QColor::fromRgb(0, 255, 127));
   _gameHud->setPosition(QPoint(5, 5));
   _gameHud->setVisible(true);
+  _gameHud->setText(QString("A: %1\nB: %2\n\nX: %3\nY: %4\nZ: %5").arg(_axeName[_axeA]).arg(_axeName[_axeB]).arg(_rxg>>4).arg(_ryg>>4).arg(_rzg>>4));
 }
 
 GlWidget::~GlWidget()
@@ -258,35 +255,74 @@ void GlWidget::rotateCube(Axe endAxe)
   }
 
   // move game camera
-  if (_axeA == eXp && _axeB == eYp) _rxg = 180<<4,  _ryg = 0,       _rzg = 0;
-  if (_axeA == eXp && _axeB == eYn) _rxg = 0,       _ryg = 0,       _rzg = 0;
-  if (_axeA == eXp && _axeB == eZp) _rxg = 90<<4,   _ryg = 0,       _rzg = 0;
-  if (_axeA == eXp && _axeB == eZn) _rxg = 270<<4,  _ryg = 0,       _rzg = 0;
-
-  if (_axeA == eYp && _axeB == eXp) _rxg = 0,       _ryg = 0,       _rzg = 270<<4;
-  if (_axeA == eYp && _axeB == eXn) _rxg = 0,       _ryg = 180<<4,  _rzg = 90<<4;
-  if (_axeA == eYp && _axeB == eZp) _rxg = 270<<4,  _ryg = 180<<4,  _rzg = 90<<4;
-  if (_axeA == eYp && _axeB == eZn) _rxg = 270<<4,  _ryg = 0,       _rzg = 270<<4;
-
-  if (_axeA == eZp && _axeB == eXp) _rxg = 270<<4,  _ryg = 90<<4,   _rzg = 0;
-  if (_axeA == eZp && _axeB == eXn) _rxg = 90<<4,   _ryg = 90<<4,   _rzg = 0;
-  if (_axeA == eZp && _axeB == eYp) _rxg = 180<<4,  _ryg = 90<<4,   _rzg = 0;
-  if (_axeA == eZp && _axeB == eYn) _rxg = 0,       _ryg = 90<<4,   _rzg = 0;
-
-  if (_axeA == eXn && _axeB == eYp) _rxg = 180<<4,  _ryg = 180<<4,  _rzg = 0;
-  if (_axeA == eXn && _axeB == eYn) _rxg = 0,       _ryg = 180<<4,  _rzg = 0;
-  if (_axeA == eXn && _axeB == eZp) _rxg = 270<<4,  _ryg = 180<<4,  _rzg = 0;
-  if (_axeA == eXn && _axeB == eZn) _rxg = 90<<4,   _ryg = 180<<4,  _rzg = 0;
-
-  if (_axeA == eYn && _axeB == eXp) _rxg = 180<<4,  _ryg = 0,       _rzg = 90<<4;
-  if (_axeA == eYn && _axeB == eXn) _rxg = 0,       _ryg = 0,       _rzg = 90<<4;
-  if (_axeA == eYn && _axeB == eZp) _rxg = 90<<4,   _ryg = 0,       _rzg = 90<<4;
-  if (_axeA == eYn && _axeB == eZn) _rxg = 270<<4,  _ryg = 0,       _rzg = 90<<4;
-
-  if (_axeA == eZn && _axeB == eXp) _rxg = 90<<4,   _ryg = 270<<4,  _rzg = 0;
-  if (_axeA == eZn && _axeB == eXn) _rxg = 270<<4,  _ryg = 270<<4,  _rzg = 0;
-  if (_axeA == eZn && _axeB == eYp) _rxg = 180<<4,  _ryg = 270<<4,  _rzg = 0;
-  if (_axeA == eZn && _axeB == eYn) _rxg = 0,       _ryg = 270<<4,  _rzg = 0;
+  switch(_axeA)
+  {
+    case eXp:
+      _ryg = 0, _rzg = 0;
+      switch(_axeB)
+      {
+        case eYp: _rxg = 180<<4;  break;
+        case eYn: _rxg = 0;       break;
+        case eZp: _rxg = 90<<4;   break;
+        case eZn: _rxg = 270<<4;  break;
+        default:  break;
+      }
+      break;
+    case eYp:
+      switch(_axeB)
+      {
+        case eXp: _rxg = 0,       _ryg = 0,       _rzg = 270<<4;  break;
+        case eXn: _rxg = 0,       _ryg = 180<<4,  _rzg = 90<<4;   break;
+        case eZp: _rxg = 270<<4,  _ryg = 180<<4,  _rzg = 90<<4;   break;
+        case eZn: _rxg = 270<<4,  _ryg = 0,       _rzg = 270<<4;  break;
+        default:  break;
+      }
+      break;
+    case eZp:
+      _ryg = 90<<4, _rzg = 0;
+      switch(_axeB)
+      {
+        case eXp: _rxg = 270<<4;  break;
+        case eXn: _rxg = 90<<4;   break;
+        case eYp: _rxg = 180<<4;  break;
+        case eYn: _rxg = 0;       break;
+        default:  break;
+      }
+      break;
+    case eXn:
+      _ryg = 180<<4, _rzg = 0;
+      switch(_axeB)
+      {
+        case eYp: _rxg = 180<<4;  break;
+        case eYn: _rxg = 0;       break;
+        case eZp: _rxg = 270<<4;  break;
+        case eZn: _rxg = 90<<4;   break;
+        default:  break;
+      }
+      break;
+    case eYn:
+      _ryg = 0, _rzg = 90<<4;
+      switch(_axeB)
+      {
+        case eXp: _rxg = 180<<4;  break;
+        case eXn: _rxg = 0;       break;
+        case eZp: _rxg = 90<<4;   break;
+        case eZn: _rxg = 270<<4;  break;
+        default:  break;
+      }
+      break;
+    case eZn:
+      _ryg = 270<<4, _rzg = 0;
+      switch(_axeB)
+      {
+        case eXp: _rxg = 90<<4;   break;
+        case eXn: _rxg = 270<<4;  break;
+        case eYp: _rxg = 180<<4;  break;
+        case eYn: _rxg = 0;       break;
+        default:  break;
+      }
+      break;
+  }
 
   // update hub
   _gameHud->setText(QString("A: %1\nB: %2\n\nX: %3\nY: %4\nZ: %5").arg(_axeName[_axeA]).arg(_axeName[_axeB]).arg(_rxg>>4).arg(_ryg>>4).arg(_rzg>>4));
@@ -296,18 +332,17 @@ void GlWidget::resizeGL(int width, int height)
 {
   glViewport(0, 0, width, height);
 
-  float x = 1.5;
-  float y = 1.5;
+  float X = 1.5;
+  float Y = 1.5;
 
   if (width > height)
-    x *= ((float)width / (float)height);
+    X *= ((float)width / (float)height);
   else
-    y *= ((float)height / (float)width);
+    Y *= ((float)height / (float)width);
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(-x, +x, +y, -y, -2.0, 15.0);
-  glMatrixMode(GL_MODELVIEW);
+  glOrtho(-X, +X, +Y, -Y, -2.0, 15.0);
 }
 
 void GlWidget::paintEvent(QPaintEvent */*event*/)
@@ -396,12 +431,6 @@ void GlWidget::convertMove()
 
 void GlWidget::updateCamera()
 {
-  /*int Drx = _rxg - _rxgc; while (Drx > 90<<4) Drx-=360<<4; while (Drx < -90<<4) Drx+=360<<4;
-  if (Drx) { if (Drx > 0) _rxgc += (9<<4);  else _rxgc -= (9<<4); if (_rxgc == _rxg) _rxgc = _rxg = normalizeAngle(_rxg); }
-  int Dry = _ryg - _rygc; while (Dry > 90<<4) Dry-=360<<4; while (Dry < -90<<4) Dry+=360<<4;
-  if (Dry) { if (Dry > 0) _rygc += (9<<4);  else _rygc -= (9<<4); if (_rygc == _ryg) _rygc = _ryg = normalizeAngle(_ryg); }
-  int Drz = _rzg - _rzgc; while (Drz > 90<<4) Drz-=360<<4; while (Drz < -90<<4) Drz+=360<<4;
-  if (Drz) { if (Drz > 0) _rzgc += (9<<4);  else _rzgc -= (9<<4); if (_rzgc == _rzg) _rzgc = _rzg = normalizeAngle(_rzg); }*/
   if (_rxa > 0) _rxa -= (9<<4);
   if (_rxa < 0) _rxa += (9<<4);
   if (_rya > 0) _rya -= (9<<4);
@@ -411,6 +440,6 @@ void GlWidget::updateCamera()
 int GlWidget::normalizeAngle(int angle)
 {
   while (angle < 0)         angle += (360<<4);
-  while (angle >= (360<<4))  angle -= (360<<4);
+  while (angle >= (360<<4)) angle -= (360<<4);
   return angle;
 }
