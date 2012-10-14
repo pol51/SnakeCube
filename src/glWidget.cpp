@@ -23,7 +23,7 @@ GlWidget::GlWidget(QWidget *parent)
 {
   _refreshTimer.setSingleShot(false);
   connect(&_refreshTimer, SIGNAL(timeout()), this, SLOT(update()));
-  _refreshTimer.start(1000/120);
+  _refreshTimer.start(1000/60);
 
   _fpsTimer.setSingleShot(false);
   connect(&_fpsTimer, SIGNAL(timeout()), this, SLOT(updateFPS()));
@@ -163,7 +163,7 @@ void GlWidget::eatFood()
 
   // increase score and snake length
   ++_score;
-  _toAdd = 5;
+  _toAdd = 6;
 
   // update game hud
   _gameHud->setText(QString("Score: %1").arg(_score));
@@ -454,10 +454,10 @@ void GlWidget::keyPressEvent(QKeyEvent *event)
 {
   switch (event->key())
   {
-    case Qt::Key_Left:    _moveA = -1, _moveB =  0; convertMove(); break;
-    case Qt::Key_Right:   _moveA =  1, _moveB =  0; convertMove(); break;
-    case Qt::Key_Up:      _moveA =  0, _moveB =  1; convertMove(); break;
-    case Qt::Key_Down:    _moveA =  0, _moveB = -1; convertMove(); break;
+    case Qt::Key_Left:    if (_moveA) break; _moveA = -1, _moveB =  0; convertMove(); break;
+    case Qt::Key_Right:   if (_moveA) break; _moveA =  1, _moveB =  0; convertMove(); break;
+    case Qt::Key_Up:      if (_moveB) break; _moveA =  0, _moveB =  1; convertMove(); break;
+    case Qt::Key_Down:    if (_moveB) break; _moveA =  0, _moveB = -1; convertMove(); break;
 
     case Qt::Key_Escape:  close(); break;
 
