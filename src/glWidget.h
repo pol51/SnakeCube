@@ -38,9 +38,12 @@ class GlWidget : public QGLWidget
     int _moveY;
     int _moveZ;
     int _toAdd;
+    int _score;
     Axe _axeA;
     Axe _axeB;
     Cube   *_plateau;
+    Cube   *_food;
+    QHud   *_debugHud;
     QHud   *_gameHud;
     QTimer _refreshTimer;
     QTimer _fpsTimer;
@@ -58,19 +61,20 @@ class GlWidget : public QGLWidget
     static int normalizeAngle(int angle);
 
   protected:
-    virtual void initializeGL();
-    virtual void paintGL();
-    virtual void resizeGL(int width, int height);
-    virtual void paintEvent(QPaintEvent *event);
-    virtual void mouseMoveEvent(QMouseEvent *event);
-    virtual void mousePressEvent(QMouseEvent *event);
-    virtual void keyPressEvent(QKeyEvent *event);
+    void initializeGL();
+    void paintGL();
+    void resizeGL(int width, int height);
+    void paintEvent(QPaintEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+    void keyPressEvent(QKeyEvent *event);
     void convertMove();
     void rotateCube(Axe endAxe);
-    virtual void draw();
+    void draw();
 
   protected slots:
     void updateFPS();
+    void eatFood();
     void processGame();
     void updateCamera();
 };

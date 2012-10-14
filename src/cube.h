@@ -28,6 +28,14 @@ class Cube : public QObject
     QColor _color;
     Q_PROPERTY(QColor _color READ color WRITE setColor);
 
+    /*!
+     * @brief Fuzzy Compare two qreal
+     */
+    inline bool FuzzyCompare(const qreal p1, const qreal p2)
+    {
+      return qAbs(p1 - p2) < 0.09;
+    }
+
   public:
     /*!
     * @brief Constructor
@@ -91,12 +99,12 @@ class Cube : public QObject
     qreal size() const { return _size; }
 
     /*!
-    * @breief Set size of the object
+    * @brief Set size of the object
     */
     void setSize(const qreal size) { _size = size; }
 
     /*!
-    * @breief Copy position of source cube
+    * @brief Copy position of source cube
     */
     void CopyPosFrom(Cube &source)
     {
@@ -105,8 +113,16 @@ class Cube : public QObject
       _z = source._z;
     }
 
-  public slots:
     /*!
+    * @brief Equality operator
+    */
+    bool operator==(const Cube &other)
+    {
+      return FuzzyCompare(_x, other._x) && FuzzyCompare(_y, other._y) && FuzzyCompare(_z, other._z);
+    }
+
+  public slots:
+     /*!
     * @brief Set the current positions
     */
     void setX(qreal x) { _x = x; }

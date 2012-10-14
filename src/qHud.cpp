@@ -55,6 +55,7 @@ void QHud::updateImage()
 
 void QHud::draw(QPainter* painter)
 {
+  if (!_visible) return;
   if (_updatable) updateImage();
   painter->drawImage(_position, *_image);
 }

@@ -16,13 +16,14 @@ GlWidget::GlWidget(QWidget *parent)
   _rxa(0), _rya(0),
   _moveA(0), _moveB(0),
   _moveX(0), _moveY(0), _moveZ(0),
-  _toAdd(71),
+  _toAdd(0), _score(-1),
   _axeA(eXp), _axeB(eYn),
+  _debugHud(new QHud(this)),
   _gameHud(new QHud(this))
 {
   _refreshTimer.setSingleShot(false);
   connect(&_refreshTimer, SIGNAL(timeout()), this, SLOT(update()));
-  _refreshTimer.start(1000/60);
+  _refreshTimer.start(1000/120);
 
   _fpsTimer.setSingleShot(false);
   connect(&_fpsTimer, SIGNAL(timeout()), this, SLOT(updateFPS()));
@@ -40,6 +41,9 @@ GlWidget::GlWidget(QWidget *parent)
   _items.append(new Cube(0.f, 0.f, 0.9f, this));
   _items.last()->setColor(0xff7fff7f);
 
+  _food = new Cube(0.f, 0.f, 0.9f, this);
+  _food->setColor(0xffff7f7f);
+
   _plateau = new Cube(0.f, 0.f, 0.f, this);
   _plateau->setColor(QColor(0xaf, 0xaf, 0xff, 0xaf));
   _plateau->setSize(1.8f);
@@ -51,11 +55,18 @@ GlWidget::GlWidget(QWidget *parent)
   setFocus();
   grabKeyboard();
 
+  _debugHud->setFont(QFont("DejaVu Sans Mono", 12, QFont::Bold));
+  _debugHud->setFgColor(QColor::fromRgb(0, 127, 255));
+  _debugHud->setText(QString("A: %1\nB: %2\n\nX: %3\nY: %4\nZ: %5").arg(_axeName[_axeA]).arg(_axeName[_axeB]).arg(360).arg(360).arg(360));
+  _debugHud->updateImage();
+  _debugHud->setPosition(QPoint(width() - _debugHud->size().width() - 5, 5));
+  _debugHud->setText(QString("A: %1\nB: %2\n\nX: %3\nY: %4\nZ: %5").arg(_axeName[_axeA]).arg(_axeName[_axeB]).arg(_rxg>>4).arg(_ryg>>4).arg(_rzg>>4));
+
   _gameHud->setFont(QFont("DejaVu Sans Mono", 12, QFont::Bold));
   _gameHud->setFgColor(QColor::fromRgb(0, 255, 127));
   _gameHud->setPosition(QPoint(5, 5));
+  _gameHud->setText(QString("Score: %1").arg(_score));
   _gameHud->setVisible(true);
-  _gameHud->setText(QString("A: %1\nB: %2\n\nX: %3\nY: %4\nZ: %5").arg(_axeName[_axeA]).arg(_axeName[_axeB]).arg(_rxg>>4).arg(_ryg>>4).arg(_rzg>>4));
 }
 
 GlWidget::~GlWidget()
@@ -63,7 +74,7 @@ GlWidget::~GlWidget()
   makeCurrent();
 
   delete _plateau;
-  delete _gameHud;
+  delete _debugHud;
 
   QVectorIterator<Cube*> item(_items);
   while (item.hasNext())
@@ -134,6 +145,8 @@ void GlWidget::draw()
   while (item.hasNext())
     item.next()->Draw();
 
+  _food->Draw();
+
   _plateau->Draw();
 }
 
@@ -143,13 +156,52 @@ void GlWidget::updateFPS()
   _fps = 0;
 }
 
+void GlWidget::eatFood()
+{
+  QVectorIterator<Cube*> Item(_items);
+  qreal X, Y, Z;
+
+  // increase score and snake length
+  ++_score;
+  _toAdd = 5;
+
+  // update game hud
+  _gameHud->setText(QString("Score: %1").arg(_score));
+
+randomize:
+  X = (qrand() % 19 - 9) / 10.f;
+  Y = (qrand() % 19 - 9) / 10.f;
+  Z = (qrand() % 19 - 9) / 10.f;
+
+  switch (qrand() % 6)
+  {
+    case 0: X = -0.9f; break;
+    case 1: X =  0.9f; break;
+    case 2: Y = -0.9f; break;
+    case 3: Y =  0.9f; break;
+    case 4: Z = -0.9f; break;
+    case 5: Z =  0.9f; break;
+  }
+
+  _food->setY(Y);
+  _food->setX(X);
+  _food->setZ(Z);
+
+  // check if the food isn't isn the snake
+  Item.toBack();
+  while (Item.hasPrevious())
+    if (*_food == *Item.previous())
+      goto randomize;
+}
+
 void GlWidget::processGame()
 {
-  QVectorIterator<Cube*> item(_items);
-  Cube *lastCube, *currentCube, *headCube;
-  headCube = lastCube = item.next();
+  QVectorIterator<Cube*> Item(_items);
+  Cube *LastCube, *CurrentCube, *HeadCube;
+  HeadCube = LastCube = Item.next();
 
-  Cube *NewCube = NULL;
+  // create new tail item if needed
+  Cube *NewCube(NULL);
   if (_toAdd && (_moveX || _moveY || _moveZ))
   {
     _toAdd--;
@@ -157,47 +209,61 @@ void GlWidget::processGame()
     NewCube->setColor(0xff7fff7f);
   }
 
-  item.toBack();
-  lastCube = item.previous();
-  while (item.hasPrevious())
+  // move body
+  Item.toBack();
+  LastCube = Item.previous();
+  while (Item.hasPrevious())
   {
-    currentCube = item.previous();
-    lastCube->CopyPosFrom(*currentCube);
-    lastCube = currentCube;
+    CurrentCube = Item.previous();
+    LastCube->CopyPosFrom(*CurrentCube);
+    LastCube = CurrentCube;
   }
 
+  // move head
   qreal X, Y, Z;
 move:
-  X = headCube->x();
-  Y = headCube->y();
-  Z = headCube->z();
+  X = HeadCube->x();
+  Y = HeadCube->y();
+  Z = HeadCube->z();
 
   if (_moveX)
   {
-    X = headCube->x() + _moveX * 0.1f;
+    X = HeadCube->x() + _moveX * 0.1f;
     if (X >  0.91f) { rotateCube(eXp); convertMove(); goto move; }
     if (X < -0.91f) { rotateCube(eXn); convertMove(); goto move; }
   }
 
   if (_moveY)
   {
-    Y = headCube->y() + _moveY * 0.1f;
+    Y = HeadCube->y() + _moveY * 0.1f;
     if (Y >  0.91f) { rotateCube(eYp); convertMove(); goto move; }
     if (Y < -0.91f) { rotateCube(eYn); convertMove(); goto move; }
   }
 
   if (_moveZ)
   {
-    Z = headCube->z() + _moveZ * 0.1f;
+    Z = HeadCube->z() + _moveZ * 0.1f;
     if (Z >  0.91f) { rotateCube(eZp); convertMove(); goto move; }
     if (Z < -0.91f) { rotateCube(eZn); convertMove(); goto move; }
   }
 
-  headCube->setX(X);
-  headCube->setY(Y);
-  headCube->setZ(Z);
+  HeadCube->setX(X);
+  HeadCube->setY(Y);
+  HeadCube->setZ(Z);
 
+  // increase snake size (enqueue tail item)
   if (NewCube) _items.append(NewCube);
+
+  // check colisions
+  Item.toBack();
+  while (Item.hasPrevious())
+  {
+    CurrentCube = Item.previous();
+    if (*HeadCube == *CurrentCube && HeadCube != CurrentCube)
+       _gameTimer.stop();
+    if (*HeadCube == *_food)
+      eatFood();
+  }
 }
 
 void GlWidget::rotateCube(Axe endAxe)
@@ -324,8 +390,8 @@ void GlWidget::rotateCube(Axe endAxe)
       break;
   }
 
-  // update hub
-  _gameHud->setText(QString("A: %1\nB: %2\n\nX: %3\nY: %4\nZ: %5").arg(_axeName[_axeA]).arg(_axeName[_axeB]).arg(_rxg>>4).arg(_ryg>>4).arg(_rzg>>4));
+  // update debug hub
+  _debugHud->setText(QString("A: %1\nB: %2\n\nX: %3\nY: %4\nZ: %5").arg(_axeName[_axeA]).arg(_axeName[_axeB]).arg(_rxg>>4).arg(_ryg>>4).arg(_rzg>>4));
 }
 
 void GlWidget::resizeGL(int width, int height)
@@ -343,6 +409,8 @@ void GlWidget::resizeGL(int width, int height)
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glOrtho(-X, +X, +Y, -Y, -2.0, 15.0);
+
+  _debugHud->setPosition(QPoint(width - _debugHud->size().width() - 5, 5));
 }
 
 void GlWidget::paintEvent(QPaintEvent */*event*/)
@@ -353,6 +421,7 @@ void GlWidget::paintEvent(QPaintEvent */*event*/)
 
   paintGL();
 
+  _debugHud->draw(&painter);
   _gameHud->draw(&painter);
 
   painter.end();
@@ -383,25 +452,23 @@ void GlWidget::mousePressEvent(QMouseEvent *event)
 
 void GlWidget::keyPressEvent(QKeyEvent *event)
 {
-  if (event->key() == Qt::Key_Left)  { _moveA = -1; _moveB =  0; }
-  if (event->key() == Qt::Key_Right) { _moveA =  1; _moveB =  0; }
-  if (event->key() == Qt::Key_Up)    { _moveA =  0; _moveB =  1; }
-  if (event->key() == Qt::Key_Down)  { _moveA =  0; _moveB = -1; }
-
-  if (event->key() == Qt::Key_Escape){ close(); }
-
-  if (event->key() == Qt::Key_F) { setWindowState(windowState() ^ Qt::WindowFullScreen);}
-
-  if (event->key() == Qt::Key_Space)
+  switch (event->key())
   {
+    case Qt::Key_Left:    _moveA = -1, _moveB =  0; convertMove(); break;
+    case Qt::Key_Right:   _moveA =  1, _moveB =  0; convertMove(); break;
+    case Qt::Key_Up:      _moveA =  0, _moveB =  1; convertMove(); break;
+    case Qt::Key_Down:    _moveA =  0, _moveB = -1; convertMove(); break;
 
-    if (_gameTimer.isActive())
-      _gameTimer.stop();
-    else
-      _gameTimer.start();
+    case Qt::Key_Escape:  close(); break;
+
+    case Qt::Key_D:       _debugHud->setVisible(!_debugHud->isVisible());  break;
+
+    case Qt::Key_F:       setWindowState(windowState() ^ Qt::WindowFullScreen); break;
+
+    case Qt::Key_Space:   if (_gameTimer.isActive())  _gameTimer.stop();
+                          else                        _gameTimer.start(); break;
+    default:  break;
   }
-
-  convertMove();
 }
 
 void GlWidget::convertMove()
