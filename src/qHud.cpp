@@ -7,7 +7,7 @@ QHud::QHud(QObject *parent)
   : QObject(parent),
   _autoSize(true), _visible(false), _updatable(true),
   _textAlignment(Qt::AlignLeft), _border(4),
-  _image(NULL),
+  _image(nullptr),
   _fgColor(Qt::white),
   _bgColor(QColor::fromRgb(0, 0, 0, 95)),
   _position(QPoint(0, 0)),

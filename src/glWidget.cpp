@@ -1,14 +1,17 @@
 #include "glWidget.h"
 
-#include <QtOpenGL>
+#include <QKeyEvent>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QRandomGenerator>
 
-#include <cube.h>
-#include <qHud.h>
+#include "cube.h"
+#include "qHud.h"
 
 QString GlWidget::_axeName[6] = { "X-", "X+", "Y-", "Y+", "Z-", "Z+" };
 
 GlWidget::GlWidget(QWidget *parent)
-  :QGLWidget(QGLFormat(QGL::SampleBuffers | QGL::DoubleBuffer), parent),
+  :QOpenGLWidget(parent),
   _fps(0),
   _rx(-10<<4), _ry(10<<4), _rz(0),
   _rxg(0), _ryg(0), _rzg(0),
@@ -22,19 +25,19 @@ GlWidget::GlWidget(QWidget *parent)
   _gameHud(new QHud(this))
 {
   _refreshTimer.setSingleShot(false);
-  connect(&_refreshTimer, SIGNAL(timeout()), this, SLOT(update()));
+  connect(&_refreshTimer, &QTimer::timeout, this, qOverload<>(&GlWidget::update));
   _refreshTimer.start(1000/60);
 
   _fpsTimer.setSingleShot(false);
-  connect(&_fpsTimer, SIGNAL(timeout()), this, SLOT(updateFPS()));
+  connect(&_fpsTimer, &QTimer::timeout, this, &GlWidget::updateFPS);
   _fpsTimer.start(1000);
 
   _gameTimer.setSingleShot(false);
-  connect(&_gameTimer, SIGNAL(timeout()), this, SLOT(processGame()));
+  connect(&_gameTimer, &QTimer::timeout, this, &GlWidget::processGame);
   _gameTimer.start(100);
 
   _cameraTimer.setSingleShot(false);
-  connect(&_cameraTimer, SIGNAL(timeout()), this, SLOT(updateCamera()));
+  connect(&_cameraTimer, &QTimer::timeout, this, &GlWidget::updateCamera);
   _cameraTimer.start(20);
 
 
@@ -71,8 +74,6 @@ GlWidget::GlWidget(QWidget *parent)
 
 GlWidget::~GlWidget()
 {
-  makeCurrent();
-
   delete _plateau;
   delete _debugHud;
 
@@ -89,8 +90,10 @@ QSize GlWidget::sizeHint() const
 
 void GlWidget::initializeGL()
 {
+  initializeOpenGLFunctions();
+
   glShadeModel(GL_SMOOTH);
-  static GLfloat lightPosition[4] = { 0.2, 0.3, 6.0, 3.0 };
+  static GLfloat lightPosition[4] = { 0.2f, 0.3f, 6.0f, 3.0f };
   glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
@@ -118,6 +121,11 @@ void GlWidget::paintGL()
   glDisable(GL_CULL_FACE);
 
   glFlush();
+
+  QPainter painter(this);
+  painter.setRenderHint(QPainter::Antialiasing);
+  _debugHud->draw(&painter);
+  _gameHud->draw(&painter);
 }
 
 void GlWidget::draw()
@@ -143,11 +151,11 @@ void GlWidget::draw()
 
   QVectorIterator<Cube*> item(_items);
   while (item.hasNext())
-    item.next()->Draw();
+    item.next()->Draw(this);
 
-  _food->Draw();
+  _food->Draw(this);
 
-  _plateau->Draw();
+  _plateau->Draw(this);
 }
 
 void GlWidget::updateFPS()
@@ -169,11 +177,11 @@ void GlWidget::eatFood()
   _gameHud->setText(QString("Score: %1").arg(_score));
 
 randomize:
-  X = (qrand() % 19 - 9) / 10.f;
-  Y = (qrand() % 19 - 9) / 10.f;
-  Z = (qrand() % 19 - 9) / 10.f;
+  X = (QRandomGenerator::global()->bounded(19) - 9) / 10.f;
+  Y = (QRandomGenerator::global()->bounded(19) - 9) / 10.f;
+  Z = (QRandomGenerator::global()->bounded(19) - 9) / 10.f;
 
-  switch (qrand() % 6)
+  switch (QRandomGenerator::global()->bounded(6))
   {
     case 0: X = -0.9f; break;
     case 1: X =  0.9f; break;
@@ -396,8 +404,6 @@ void GlWidget::rotateCube(Axe endAxe)
 
 void GlWidget::resizeGL(int width, int height)
 {
-  glViewport(0, 0, width, height);
-
   float X = 1.5;
   float Y = 1.5;
 
@@ -413,24 +419,10 @@ void GlWidget::resizeGL(int width, int height)
   _debugHud->setPosition(QPoint(width - _debugHud->size().width() - 5, 5));
 }
 
-void GlWidget::paintEvent(QPaintEvent */*event*/)
-{
-  QPainter painter;
-  painter.begin(this);
-  painter.setRenderHint(QPainter::Antialiasing);
-
-  paintGL();
-
-  _debugHud->draw(&painter);
-  _gameHud->draw(&painter);
-
-  painter.end();
-}
-
 void GlWidget::mouseMoveEvent(QMouseEvent *event)
 {
-  int dx = event->x() - _lastPos.x();
-  int dy = event->y() - _lastPos.y();
+  int dx = event->pos().x() - _lastPos.x();
+  int dy = event->pos().y() - _lastPos.y();
 
   if (event->buttons() & Qt::LeftButton)
   {

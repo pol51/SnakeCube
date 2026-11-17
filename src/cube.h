@@ -1,7 +1,10 @@
 #ifndef __CUBE_H
 #define __CUBE_H
 
-#include <QtOpenGL>
+#include <QColor>
+#include <QObject>
+
+class QOpenGLFunctions_2_1;
 
 class Cube : public QObject
 {
@@ -20,13 +23,11 @@ class Cube : public QObject
     * @brief The size of object
     */
     qreal _size;
-    Q_PROPERTY(qreal _color READ size WRITE setSize);
 
     /*!
     * @brief The color of object
     */
     QColor _color;
-    Q_PROPERTY(QColor _color READ color WRITE setColor);
 
     /*!
      * @brief Fuzzy Compare two qreal
@@ -40,7 +41,7 @@ class Cube : public QObject
     /*!
     * @brief Constructor
     */
-    Cube(qreal x, qreal y, qreal z, QObject *parent = NULL);
+    Cube(qreal x, qreal y, qreal z, QObject *parent = nullptr);
 
     /*!
     * @brief Destructor
@@ -60,7 +61,7 @@ class Cube : public QObject
     /*!
     * @brief Draw the object
     */
-    void Draw() const;
+    void Draw(QOpenGLFunctions_2_1 *gl) const;
 
     /*!
     * @brief Translate the object

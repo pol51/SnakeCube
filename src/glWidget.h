@@ -1,13 +1,16 @@
 #ifndef __GLWIDGET_H
 #define __GLWIDGET_H
 
-#include <QGLWidget>
+#include <QOpenGLFunctions_2_1>
+#include <QOpenGLWidget>
+#include <QPoint>
 #include <QTimer>
+#include <QVector>
 
 class Cube;
 class QHud;
 
-class GlWidget : public QGLWidget
+class GlWidget : public QOpenGLWidget, protected QOpenGLFunctions_2_1
 {
   Q_OBJECT
 
@@ -53,21 +56,20 @@ class GlWidget : public QGLWidget
     QPoint _lastPos;
 
   public:
-    GlWidget(QWidget *parent = NULL);
+    GlWidget(QWidget *parent = nullptr);
     virtual ~GlWidget();
 
-    QSize sizeHint() const;
+    QSize sizeHint() const override;
 
     static int normalizeAngle(int angle);
 
   protected:
-    void initializeGL();
-    void paintGL();
-    void resizeGL(int width, int height);
-    void paintEvent(QPaintEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    void mousePressEvent(QMouseEvent *event);
-    void keyPressEvent(QKeyEvent *event);
+    void initializeGL() override;
+    void paintGL() override;
+    void resizeGL(int width, int height) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
     void convertMove();
     void rotateCube(Axe endAxe);
     void draw();

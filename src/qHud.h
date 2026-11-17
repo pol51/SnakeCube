@@ -17,7 +17,7 @@ class QHud : public QObject
   Q_OBJECT
 
   public:
-    QHud(QObject *parent = NULL);
+    QHud(QObject *parent = nullptr);
     ~QHud();
 
     const QString&  text()          const { return _text; }
